@@ -86,6 +86,25 @@ describe('SearchResults', () => {
     expect(wrapper.emitted('retry')).toHaveLength(1);
   });
 
+  it('keeps the paging bar in place while the next page loads, with its buttons disabled', () => {
+    mountResults({ status: 'loading' });
+    const buttons = wrapper.get('nav').findAll('button');
+    expect(buttons.map((b) => b.attributes('disabled'))).toEqual(['', '']);
+  });
+
+  it('scrolls the results back to the top when new results start loading', async () => {
+    mountResults();
+    let scrolledTo;
+    Object.defineProperty(wrapper.get('[data-results-body]').element, 'scrollTop', {
+      configurable: true,
+      get: () => 0,
+      set: (value) => (scrolledTo = value),
+    });
+
+    await wrapper.setProps({ status: 'loading' });
+    expect(scrolledTo).toBe(0);
+  });
+
   it('hides paging when everything fits on one page', () => {
     mountResults({ page: 1, pageCount: 1, hasPrevious: false, hasNext: false });
     expect(wrapper.find('nav').exists()).toBe(false);

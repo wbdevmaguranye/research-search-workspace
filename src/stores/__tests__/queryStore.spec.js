@@ -71,6 +71,17 @@ describe('queryStore', () => {
     expect(() => store.setOperator(store.terms[0].id, 'XOR')).toThrow(/Unknown operator "XOR"/);
   });
 
+  it('replaces every term at once, e.g. from an example search', () => {
+    store.addTerm('old');
+    store.loadTerms([
+      { value: 'tumour' },
+      { value: 'tumor', operator: 'OR' },
+      { value: 'benign', operator: 'NOT' },
+    ]);
+    expect(store.terms.map((t) => t.value)).toEqual(['tumour', 'tumor', 'benign']);
+    expect(store.query).toBe('(tumour OR tumor) NOT benign');
+  });
+
   it('clears every term', () => {
     store.addTerm('cancer');
     store.addTerm('immunotherapy');

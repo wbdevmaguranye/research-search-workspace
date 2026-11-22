@@ -37,11 +37,12 @@ const remove = async (id, index) => {
       </button>
     </div>
 
-    <ol ref="list" role="list" class="mt-2 space-y-2">
+    <!-- Chips wrap onto new rows, so many terms stay compact -->
+    <ol ref="list" role="list" class="mt-2 flex flex-wrap gap-2">
       <li
         v-for="(term, index) in terms"
         :key="term.id"
-        class="flex items-center gap-2 rounded-md border border-line bg-canvas py-1 pr-1 pl-3"
+        class="flex max-w-full items-center gap-2 rounded-md border border-line bg-canvas py-1 pr-1 pl-3"
       >
         <template v-if="index > 0">
           <label :for="`${selectIdPrefix}-${term.id}`" class="sr-only">
@@ -57,7 +58,7 @@ const remove = async (id, index) => {
           </select>
         </template>
 
-        <span class="min-w-0 flex-1 break-words">{{ term.value }}</span>
+        <span class="min-w-0 break-words">{{ term.value }}</span>
 
         <button
           type="button"

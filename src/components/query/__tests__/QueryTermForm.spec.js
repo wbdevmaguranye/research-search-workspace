@@ -36,6 +36,15 @@ describe('QueryTermForm', () => {
     expect(radios[0].element.checked).toBe(true);
   });
 
+  it('explains the chosen operator in one line, linked to the group', async () => {
+    mountForm({ hasTerms: true });
+    const hintId = wrapper.get('fieldset').attributes('aria-describedby');
+    expect(wrapper.get(`#${hintId}`).text()).toBe('Results must also include this term.');
+
+    await wrapper.get('input[value="NOT"]').setValue();
+    expect(wrapper.get(`#${hintId}`).text()).toBe('Results must not include this term.');
+  });
+
   it('emits the term and operator, then clears the input and keeps focus there', async () => {
     mountForm({ hasTerms: true });
     await wrapper.get('input[value="NOT"]').setValue();

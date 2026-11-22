@@ -47,6 +47,12 @@ export const useQueryStore = defineStore('query', () => {
     terms.value = [];
   };
 
+  // Replaces all terms in one go, so watchers see a single change
+  const loadTerms = (list) => {
+    clear();
+    for (const { value, operator = 'AND' } of list) addTerm(value, operator);
+  };
+
   return {
     // State
     terms,
@@ -57,5 +63,6 @@ export const useQueryStore = defineStore('query', () => {
     removeTerm,
     setOperator,
     clear,
+    loadTerms,
   };
 });

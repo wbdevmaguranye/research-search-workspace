@@ -43,6 +43,7 @@ describe('design tokens in main.css', () => {
     ['accent', 'canvas', NON_TEXT, 'focus ring on the page'],
     ['line-strong', 'surface', NON_TEXT, 'input and operator option borders'],
     ['line-strong', 'canvas', NON_TEXT, 'operator select borders in the term list'],
+    ['brand', 'canvas', NON_TEXT, 'results scrollbar'],
   ];
 
   it('finds every token the pairings refer to', () => {

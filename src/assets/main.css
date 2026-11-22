@@ -13,6 +13,22 @@
   --color-accent: #00696f;
   --color-accent-strong: #004e53;
   --color-danger: #b42318;
+  --color-brand: #c77d00; /* brand orange #fcaf17, darkened to reach 3:1 */
+}
+
+/* Thin brand-orange scrollbar for scroll areas */
+@utility scrollbar-brand {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand) transparent;
+
+  /* Fallback for browsers without scrollbar-color */
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: var(--color-brand);
+  }
 }
 
 @layer base {
