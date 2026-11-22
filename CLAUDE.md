@@ -21,8 +21,9 @@ views/      composes components with stores. Thin.
 ```
 
 - **Errors are values.** The service layer turns every failure into `{ kind, status, message }`
-  (`kind`: `network` | `http` | `parse` | `aborted`). Stores map that to UI state. No `console.log`
-  as error handling.
+  (`kind`: `network` | `http` | `timeout` | `parse` | `aborted`). Stores map that to UI state. No
+  `console.log` as error handling.
+- **Never render API HTML.** Text from the API is converted to plain text in the service; no `v-html`.
 - **Async requests cancel their predecessor.** A newer search or page change aborts the in-flight
   request, so a stale response can never overwrite a newer one.
 - **Search status is one value:** `idle | loading | success | empty | error`.

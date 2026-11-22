@@ -43,6 +43,7 @@ src/
   assets/main.css     Tailwind entry and design tokens
   components/layout/  app frame: skip link, header, footer
   router/             routes
+  services/           network: fetch wrapper and the Europe PMC search service
   utils/              pure logic: query building
   views/              the search workspace page
 ```
@@ -73,6 +74,24 @@ each with its tests:
   `(malaria AND vaccine) OR dengue` (149k) nor `malaria AND (vaccine OR dengue)` (70k).
 - **The first term's operator is ignored**, since there is nothing before it to combine with.
 
+### API connection
+
+- **Requests never throw.** `services/http.js` resolves every call to `{ ok: true, data }` or
+  `{ ok: false, error: { kind, status, message } }`, where `kind` is `network`, `http`, `timeout`,
+  `parse` or `aborted`. This follows the data-layer pattern of a previous project, adding typed
+  errors, cancellation and a 15-second timeout. It is a plain module, not a Pinia store, as it
+  holds no state.
+- **Requests can be cancelled** with an `AbortSignal`, so a newer search can cancel an older one.
+- **Plain `fetch`, no HTTP library.** Europe PMC allows cross-origin requests
+  (`Access-Control-Allow-Origin: *`), so no backend or proxy is needed.
+- Findings from testing the live API, each covered by a test:
+  - Some errors arrive as **HTTP 200** with `errCode`/`errMsg` in the body (e.g. an empty query),
+    so the service checks the body as well as the status.
+  - **The last page still returns a `nextCursorMark`**, which leads to an empty page. Whether a
+    next page exists is therefore worked out from `hitCount`, not from the cursor.
+  - About half of titles contain markup, either as tags (`<i>E. coli</i>`) or entity-encoded
+    (`&lt;i&gt;`). Titles are converted to plain text and never rendered as HTML.
+
 ### Styling
 
 - Tailwind's default palette is switched off; only our design tokens exist, and every colour
@@ -82,6 +101,8 @@ each with its tests:
 ### Known limitations
 
 - No field-specific search (title, author, abstract).
+- Titles lose their italics (e.g. species names), as markup is stripped rather than rendered.
+- Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).
 
 _More to be added as the build progresses._
 
