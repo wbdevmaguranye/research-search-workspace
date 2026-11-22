@@ -187,6 +187,23 @@ each with its tests:
 - **Checked against the live API in a real browser**: paging to the last page, the empty state,
   a simulated network failure with Try again, and axe-core on the production build (0 violations).
 
+### Pagination: why Next / Previous, not numbered pages
+
+Numbered pages (`1 2 3 … 34`) were considered and investigated against the live API:
+
+- **The API can't jump to a page.** Its `page` parameter is ignored: page 3, 400 and 11,197 all
+  returned page 1. Only `cursorMark` paging works, and each cursor comes from the page before it.
+- **Jumping is possible, but its cost grows with distance.** A cursor can skip results with one
+  ID-only request (`resultType=idlist`); skipping 50 results landed on exactly the same page 3 as
+  walking the cursors. But each request covers at most 1,000 results, so reaching page 400 took
+  10 requests and 75 seconds, and the last page of the brief's example would need about 280.
+- **Decision: keep Next / Previous**, which is what the brief asks for. Deep page-jumping would add
+  the most complex code in the app for little value: page 34 of 279,912 results is no more
+  relevant than page 1. Researchers narrow a large result set instead, which here means adding a
+  term (adding `AND` a term _is_ searching within the results).
+- **If numbered pages were needed**, the practical version would cap at the first 1,000 results
+  (40 pages), as Google Scholar does, so any jump costs at most one extra request.
+
 ### URL and history
 
 - **The search lives in the URL**: `?t=cancer&t=AND:immunotherapy&t=NOT:melanoma`, one `t` per
@@ -240,6 +257,7 @@ Aimed at WCAG 2.2 AA:
 - Titles lose their italics (e.g. species names), as markup is stripped rather than rendered.
 - Previous re-requests the page rather than caching it: simpler and always fresh, at the cost of a
   request.
+- No jumping to a page number; see "Pagination" above for why.
 - Removing the first term promotes the next one, dropping its operator (`cancer NOT melanoma`
   becomes `melanoma`). The query preview shows the change.
 - Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).

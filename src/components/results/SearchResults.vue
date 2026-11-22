@@ -106,7 +106,7 @@ const changePage = (direction) => {
     <div
       ref="body"
       data-results-body
-      class="relative scrollbar-brand flex-1 px-4 pt-4 pb-6 sm:px-8 lg:min-h-0 lg:overflow-y-auto"
+      class="relative scrollbar-brand flex-1 px-4 pt-4 pb-6 sm:px-8 lg:min-h-0 lg:[scrollbar-gutter:stable] lg:overflow-y-auto"
     >
       <p v-if="status === 'idle'" class="text-muted">Add a term to see matching publications.</p>
 
@@ -149,10 +149,9 @@ const changePage = (direction) => {
         </li>
       </ol>
     </div>
-
     <ResultsPagination
       v-if="hasResults && pageCount > 1"
-      class="sticky bottom-0 shrink-0 border-t border-line bg-surface px-4 py-3 sm:px-8"
+      class="sticky bottom-0 scrollbar-brand shrink-0 border-t border-line bg-surface px-4 py-3 sm:px-8 lg:[scrollbar-gutter:stable] lg:overflow-hidden"
       :page="page"
       :page-count="pageCount"
       :has-previous="hasPrevious && !loading"
