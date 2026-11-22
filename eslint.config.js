@@ -26,6 +26,22 @@ export default defineConfig([
   ...pluginVue.configs['flat/recommended'],
 
   {
+    name: 'app/vue-conventions',
+    rules: {
+      // <script setup> first, then <template>: read the logic, then the markup that uses it.
+      'vue/block-order': ['error', { order: ['script', 'template'] }],
+      // Style with Tailwind classes; shared CSS (tokens, base styles) lives only in src/assets/main.css.
+      'vue/no-restricted-block': [
+        'error',
+        {
+          element: 'style',
+          message: 'Use Tailwind classes. Shared CSS belongs in src/assets/main.css (@theme / @layer).',
+        },
+      ],
+    },
+  },
+
+  {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/**'],
   },

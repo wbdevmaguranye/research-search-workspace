@@ -1,27 +1,16 @@
 @import 'tailwindcss';
 
-/*
- * Design tokens. Components use these names (bg-surface, text-muted, ring-accent…),
- * never raw palette values, so the look can change in one place.
- * Text/background pairs are chosen to meet WCAG 2.2 AA contrast (4.5:1 for body text).
- */
+/* Contrast of these pairings is checked by src/assets/__tests__/designTokens.spec.js */
 @theme {
-  --color-canvas: oklch(0.975 0.004 240); /* page background */
-  --color-surface: oklch(1 0 0); /* cards and panels */
-  --color-ink: oklch(0.24 0.02 250); /* primary text */
-  --color-muted: oklch(0.45 0.02 250); /* secondary text, ~7:1 on surface */
-  --color-line: oklch(0.89 0.01 250); /* borders and dividers */
-
-  --color-accent: oklch(0.47 0.09 200); /* links, primary actions, ~6:1 on surface */
-  --color-accent-strong: oklch(0.38 0.08 200); /* hover / pressed */
-  --color-accent-soft: oklch(0.95 0.025 200); /* selected backgrounds */
-
-  --color-danger: oklch(0.5 0.17 25);
-  --color-danger-soft: oklch(0.96 0.025 25);
-
-  --font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-canvas: #f4f7f9;
+  --color-surface: #ffffff;
+  --color-ink: #182029;
+  --color-muted: #4d5660;
+  --color-line: #d6dbe1;
+  --color-accent: #00696f;
+  --color-accent-strong: #004e53;
 }
 
 @layer base {
@@ -29,19 +18,7 @@
     @apply bg-canvas text-ink antialiased;
   }
 
-  /* One consistent, highly visible keyboard focus style for every interactive element. */
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
   }
 }

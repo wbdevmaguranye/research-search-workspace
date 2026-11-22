@@ -29,8 +29,15 @@ views/      composes components with stores. Thin.
 
 ## UI and accessibility (WCAG 2.2 AA)
 
-- Use the design tokens in `src/assets/main.css` (`bg-surface`, `text-muted`, `text-accent`...), never
-  raw Tailwind palette colours.
+- Single-file components are ordered `<script setup>` then `<template>`. **No `<style>` blocks**:
+  style with Tailwind classes. Custom CSS lives only in `src/assets/main.css` (`@theme` tokens,
+  `@layer base` defaults, or a named `@utility` when classes genuinely can't express it). Both
+  rules are enforced by ESLint (`vue/block-order`, `vue/no-restricted-block`).
+- No magic-number positioning (`left: 57px`): lay things out with flex/grid.
+- Use the design tokens in `src/assets/main.css` (`bg-surface`, `text-muted`, `text-accent`...).
+  Tailwind's default palette is switched off (`--color-*: initial`), so classes like `text-gray-600`
+  produce no style at all. Never use hex values in components. A new colour is a new token, plus a
+  pairing in `designTokens.spec.js`.
 - Native elements first: `<button>` for actions, `<a>` for navigation, `<label>` for every input.
 - One `h1` per page, then headings in order. Regions use `aria-labelledby`.
 - Status changes (results loaded, errors) are announced through an `aria-live` region.
