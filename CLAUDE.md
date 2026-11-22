@@ -10,6 +10,21 @@ These rules apply to every change, whoever or whatever writes it.
 - Vitest + @vue/test-utils + jsdom. Tests live in `__tests__/` next to the code they test.
 - No HTTP library: `fetch` + `AbortController`.
 
+## Code style
+
+- **One function style everywhere: arrow functions** (`const search = () => {}`), in app code
+  and tests. No `function` declarations. Enforced by ESLint (`func-style`, `prefer-arrow-callback`).
+- **Helpers before the code that uses them** (enforced by `no-use-before-define`).
+- **Stores are laid out in labelled sections**, in this order, and the `return` object is grouped
+  with the same labels:
+
+  ```js
+  // State      refs
+  // Getters    computed
+  // Internal   private variables and helpers, not returned
+  // Actions    functions components call
+  ```
+
 ## Architecture
 
 ```

@@ -44,6 +44,7 @@ src/
   components/layout/  app frame: skip link, header, footer
   router/             routes
   services/           network: fetch wrapper and the Europe PMC search service
+  stores/             app state: query terms, search results and paging
   utils/              pure logic: query building
   views/              the search workspace page
 ```
@@ -92,6 +93,20 @@ each with its tests:
   - About half of titles contain markup, either as tags (`<i>E. coli</i>`) or entity-encoded
     (`&lt;i&gt;`). Titles are converted to plain text and never rendered as HTML.
 
+### State
+
+- **Two Pinia setup stores that don't depend on each other.** `queryStore` holds the terms and
+  builds the query; `searchStore` takes a query string and handles results and paging. The page
+  connects them, so each store is tested on its own.
+- **One status value**: `idle | loading | success | empty | error`, so the UI can't show two
+  states at once (e.g. loading and error).
+- **Previous on a forward-only API.** Europe PMC pages with `cursorMark`, which only moves forward.
+  The store keeps a stack of the cursors it has visited: Next pushes, Previous pops and re-requests.
+- **No stale results.** Each new request cancels the one before it, and a cancelled response is
+  ignored even if it arrives late.
+- **Errors keep your place.** If a page fails to load, the page number doesn't change, and Retry
+  repeats exactly the request that failed.
+
 ### Styling
 
 - Tailwind's default palette is switched off; only our design tokens exist, and every colour
@@ -102,6 +117,10 @@ each with its tests:
 
 - No field-specific search (title, author, abstract).
 - Titles lose their italics (e.g. species names), as markup is stripped rather than rendered.
+- Previous re-requests the page rather than caching it: simpler and always fresh, at the cost of a
+  request.
+- Removing the first term promotes the next one, dropping its operator (`cancer NOT melanoma`
+  becomes `melanoma`). The query preview shows the change.
 - Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).
 
 _More to be added as the build progresses._

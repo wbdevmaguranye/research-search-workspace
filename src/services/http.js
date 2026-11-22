@@ -9,11 +9,24 @@ const MESSAGES = {
   parse: 'The server sent a response that could not be read.',
 };
 
-export function failure(kind, status = null, message = MESSAGES[kind]) {
-  return { ok: false, error: { kind, status, message } };
-}
+export const failure = (kind, status = null, message = MESSAGES[kind]) => ({
+  ok: false,
+  error: { kind, status, message },
+});
 
-export async function getJson(url, { signal, timeoutMs = TIMEOUT_MS } = {}) {
+// AbortError: cancelled by the caller; TimeoutError: our time limit ran out
+const kindOf = (error, fallback) => {
+  if (error?.name === 'AbortError') return 'aborted';
+  if (error?.name === 'TimeoutError') return 'timeout';
+  return fallback;
+};
+
+const httpMessage = (status) =>
+  status >= 500
+    ? 'The search service is unavailable right now. Please try again later.'
+    : `The search request failed (error ${status}).`;
+
+export const getJson = async (url, { signal, timeoutMs = TIMEOUT_MS } = {}) => {
   const signals = signal
     ? [signal, AbortSignal.timeout(timeoutMs)]
     : [AbortSignal.timeout(timeoutMs)];
@@ -37,17 +50,4 @@ export async function getJson(url, { signal, timeoutMs = TIMEOUT_MS } = {}) {
   } catch (error) {
     return failure(kindOf(error, 'parse'), response.status);
   }
-}
-
-// AbortError: cancelled by the caller; TimeoutError: our time limit ran out
-function kindOf(error, fallback) {
-  if (error?.name === 'AbortError') return 'aborted';
-  if (error?.name === 'TimeoutError') return 'timeout';
-  return fallback;
-}
-
-function httpMessage(status) {
-  return status >= 500
-    ? 'The search service is unavailable right now. Please try again later.'
-    : `The search request failed (error ${status}).`;
-}
+};

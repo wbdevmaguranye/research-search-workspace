@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { OPERATORS, buildQuery, formatTermValue } from '../queryBuilder';
+import { OPERATORS, buildQuery, formatTermValue, validateTerm } from '../queryBuilder';
 
 // Test helper: term('melanoma', 'NOT')
 let nextId = 0;
@@ -12,6 +12,25 @@ describe('OPERATORS', () => {
 
   it('cannot be modified at runtime', () => {
     expect(Object.isFrozen(OPERATORS)).toBe(true);
+  });
+});
+
+describe('validateTerm', () => {
+  it('accepts keywords and phrases', () => {
+    expect(validateTerm('cancer')).toBeNull();
+    expect(validateTerm('  breast cancer ')).toBeNull();
+    expect(validateTerm('cancer and diet')).toBeNull();
+  });
+
+  it('asks for text when the value is blank', () => {
+    for (const blank of ['', '   ', '""', null, undefined]) {
+      expect(validateTerm(blank)).toBe('Enter a keyword or phrase.');
+    }
+  });
+
+  it('refuses a bare operator word, pointing to the list instead', () => {
+    expect(validateTerm('AND')).toBe('AND is an operator: choose it from the list instead.');
+    expect(validateTerm(' not ')).toBe('NOT is an operator: choose it from the list instead.');
   });
 });
 

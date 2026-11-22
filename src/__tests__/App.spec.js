@@ -6,7 +6,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import App from '@/App.vue';
 import { routes } from '@/router';
 
-async function mountApp(path = '/') {
+const mountApp = async (path = '/') => {
   const router = createRouter({ history: createMemoryHistory(), routes });
   const pinia = createPinia();
   setActivePinia(pinia);
@@ -16,7 +16,7 @@ async function mountApp(path = '/') {
 
   const wrapper = mount(App, { global: { plugins: [router, pinia] } });
   return { wrapper, router };
-}
+};
 
 describe('App layout', () => {
   let wrapper;

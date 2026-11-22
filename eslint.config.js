@@ -38,6 +38,11 @@ export default defineConfig([
           message: 'Use Tailwind classes. Shared CSS belongs in src/assets/main.css (@theme / @layer).',
         },
       ],
+      // One function style: const name = () => {}
+      'func-style': ['error', 'expression'],
+      'prefer-arrow-callback': 'error',
+      // Helpers are defined before the code that uses them
+      'no-use-before-define': 'error',
     },
   },
 

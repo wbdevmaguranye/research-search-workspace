@@ -3,27 +3,27 @@
 const TOKEN_PATTERN = /--color-([\w-]+):\s*(#[0-9a-f]{6})\b/gi;
 
 // Reads `--color-name: #rrggbb` declarations into { name: '#rrggbb' }.
-export function parseColourTokens(css) {
+export const parseColourTokens = (css) => {
   const tokens = {};
   for (const [, name, hex] of css.matchAll(TOKEN_PATTERN)) {
     tokens[name] = hex;
   }
   return tokens;
-}
+};
 
-function toLinear(channel) {
+const toLinear = (channel) => {
   const c = channel / 255;
   return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
+};
 
-export function relativeLuminance(hex) {
+export const relativeLuminance = (hex) => {
   const [r, g, b] = [1, 3, 5].map((i) => toLinear(parseInt(hex.slice(i, i + 2), 16)));
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
+};
 
-export function contrastRatio(hexA, hexB) {
+export const contrastRatio = (hexA, hexB) => {
   const [lighter, darker] = [relativeLuminance(hexA), relativeLuminance(hexB)].sort(
     (x, y) => y - x,
   );
   return (lighter + 0.05) / (darker + 0.05);
-}
+};
