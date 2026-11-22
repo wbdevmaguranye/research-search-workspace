@@ -144,8 +144,7 @@ leads to an empty last page, titles with double-encoded markup and searches slow
 timeout. All of these had passed the unit tests.
 
 The suggestion I rejected was a colour-contrast test built on OKLCH colour-space maths. When I
-asked whether anyone had asked for it, the answer was no, and I could not have defended it in a
-code review, so I switched the tokens to hex and used WCAG's own formula. I also set the working
+asked whether anyone had asked for it, the answer was no, so I switched the tokens to hex and used WCAG's own formula. I also set the working
 rules: nothing is committed until I have reviewed it, comments stay to one line, and the code uses
 one function style. I steered the layout too, after spotting wasted space and a query preview
 that scrolled out of view.
