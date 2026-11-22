@@ -7,7 +7,7 @@ const OPERATOR_WORD = /^(AND|OR|NOT)$/i;
 const WHITESPACE = /\s+/g;
 
 // Cleans one value and quotes it so it is searched literally; returns '' for blank input.
-export function formatTermValue(value) {
+export const formatTermValue = (value) => {
   const text = String(value ?? '')
     .replaceAll('"', '')
     .replace(WHITESPACE, ' ')
@@ -18,10 +18,20 @@ export function formatTermValue(value) {
   const needsQuotes =
     text.includes(' ') || SYNTAX_CHARACTERS.test(text) || OPERATOR_WORD.test(text);
   return needsQuotes ? `"${text}"` : text;
-}
+};
+
+// Returns why a value can't be added as a term, or null if it can.
+export const validateTerm = (value) => {
+  const text = String(value ?? '').trim();
+  if (!formatTermValue(text)) return 'Enter a keyword or phrase.';
+  if (OPERATOR_WORD.test(text)) {
+    return `${text.toUpperCase()} is an operator: choose it from the list instead.`;
+  }
+  return null;
+};
 
 // Joins terms left to right, adding brackets when switching between AND/NOT and OR.
-export function buildQuery(terms) {
+export const buildQuery = (terms) => {
   let query = '';
   let previousGroup = null; // 'and' for AND/NOT, 'or' for OR
 
@@ -48,4 +58,4 @@ export function buildQuery(terms) {
   }
 
   return query;
-}
+};
