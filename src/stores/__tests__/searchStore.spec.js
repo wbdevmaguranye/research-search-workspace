@@ -103,14 +103,14 @@ describe('searchStore', () => {
       expect(store.articles.map((a) => a.id)).toEqual(['c']);
     });
 
-    it('moves back by re-requesting the previous cursor', async () => {
+    it('moves back to the previous page', async () => {
       searchArticles.mockResolvedValue(page({ next: 'cursor-2' }));
       await store.search('cancer');
       await store.nextPage();
       await store.previousPage();
 
-      expect(lastCall().cursorMark).toBe('*');
       expect(store.page).toBe(1);
+      expect(store.hasPrevious).toBe(false);
     });
 
     it('has no previous page on page 1', async () => {
@@ -152,6 +152,76 @@ describe('searchStore', () => {
       expect(lastCall().cursorMark).toBe('cursor-2');
       expect(store.status).toBe('success');
       expect(store.page).toBe(2);
+    });
+  });
+
+  describe('page cache', () => {
+    const shownIds = () => store.articles.map((a) => a.id);
+
+    it('shows a page it has already loaded without another request', async () => {
+      searchArticles
+        .mockResolvedValueOnce(page({ next: 'cursor-2', ids: ['p1'] }))
+        .mockResolvedValueOnce(page({ next: 'cursor-3', ids: ['p2'] }));
+      await store.search('cancer');
+      await store.nextPage();
+
+      await store.previousPage();
+      expect(shownIds()).toEqual(['p1']);
+      await store.nextPage();
+      expect(shownIds()).toEqual(['p2']);
+      expect(searchArticles).toHaveBeenCalledTimes(2);
+    });
+
+    it('reuses pages when a query is searched again, e.g. with the Back button', async () => {
+      searchArticles.mockResolvedValue(page());
+      await store.search('cancer');
+      await store.search('melanoma');
+      await store.search('cancer');
+
+      expect(searchArticles).toHaveBeenCalledTimes(2);
+      expect(store.status).toBe('success');
+    });
+
+    it('shows a cached page straight away, with no loading state', async () => {
+      searchArticles.mockResolvedValue(page());
+      await store.search('cancer');
+      await store.search('melanoma');
+
+      const pending = store.search('cancer');
+      expect(store.status).toBe('success');
+      await pending;
+    });
+
+    it('does not cache failures, so Try again asks the API again', async () => {
+      searchArticles.mockResolvedValueOnce(failure).mockResolvedValueOnce(page());
+      await store.search('cancer');
+      await store.retry();
+
+      expect(searchArticles).toHaveBeenCalledTimes(2);
+      expect(store.status).toBe('success');
+    });
+
+    it('keeps the 50 most recently used pages', async () => {
+      searchArticles.mockResolvedValue(page());
+      for (let n = 0; n <= 50; n++) await store.search(`query ${n}`);
+      searchArticles.mockClear();
+
+      await store.search('query 50');
+      expect(searchArticles).not.toHaveBeenCalled();
+      await store.search('query 0');
+      expect(searchArticles).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels a request still in flight when a cached page is shown instead', async () => {
+      searchArticles.mockResolvedValueOnce(page({ ids: ['cached'] }));
+      await store.search('cancer');
+      searchArticles.mockReturnValueOnce(new Promise(() => {}));
+      store.search('melanoma');
+      const slowSignal = lastCall().signal;
+
+      await store.search('cancer');
+      expect(slowSignal.aborted).toBe(true);
+      expect(shownIds()).toEqual(['cached']);
     });
   });
 

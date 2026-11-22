@@ -58,13 +58,10 @@ const hasResults = computed(
   () => props.hitCount > 0 && (props.status === 'success' || loading.value),
 );
 
-// Only the results body scrolls, so new results must start at its top
-watch(
-  () => props.status,
-  (status) => {
-    if (status === 'loading' && body.value) body.value.scrollTop = 0;
-  },
-);
+// Only the results body scrolls, so new results start at its top: on loading, or straight from cache
+watch([() => props.status, () => props.articles], () => {
+  if (body.value) body.value.scrollTop = 0;
+});
 
 // Read out when a search finishes; loading isn't announced, as every query change searches
 const announcement = computed(() => {

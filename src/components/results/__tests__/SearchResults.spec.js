@@ -105,6 +105,19 @@ describe('SearchResults', () => {
     expect(scrolledTo).toBe(0);
   });
 
+  it('also scrolls to the top when another page appears straight from the cache', async () => {
+    mountResults();
+    let scrolledTo;
+    Object.defineProperty(wrapper.get('[data-results-body]').element, 'scrollTop', {
+      configurable: true,
+      get: () => 0,
+      set: (value) => (scrolledTo = value),
+    });
+
+    await wrapper.setProps({ page: 3, articles: [article('c')] });
+    expect(scrolledTo).toBe(0);
+  });
+
   it('hides paging when everything fits on one page', () => {
     mountResults({ page: 1, pageCount: 1, hasPrevious: false, hasNext: false });
     expect(wrapper.find('nav').exists()).toBe(false);

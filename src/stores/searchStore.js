@@ -4,6 +4,7 @@ import { defineStore } from 'pinia';
 import { PAGE_SIZE, searchArticles } from '@/services/europePmc';
 
 const FIRST_PAGE = '*';
+const MAX_CACHED_PAGES = 50;
 
 export const useSearchStore = defineStore('search', () => {
   // State
@@ -27,6 +28,32 @@ export const useSearchStore = defineStore('search', () => {
   // Internal
   let controller = null;
   let lastRequest = [FIRST_PAGE];
+  // Pages already fetched, keyed by query and cursor; oldest-used dropped first
+  const pageCache = new Map();
+
+  const cacheKey = (cursor) => `${query.value}\n${cursor}`;
+
+  const readCache = (key) => {
+    const cached = pageCache.get(key);
+    if (cached) {
+      pageCache.delete(key); // re-insert, so Map order tracks recent use
+      pageCache.set(key, cached);
+    }
+    return cached;
+  };
+
+  const writeCache = (key, data) => {
+    pageCache.set(key, data);
+    if (pageCache.size > MAX_CACHED_PAGES) pageCache.delete(pageCache.keys().next().value);
+  };
+
+  const show = (cursorStack, data) => {
+    cursors.value = cursorStack;
+    articles.value = data.articles;
+    hitCount.value = data.hitCount;
+    nextCursorMark.value = data.nextCursorMark;
+    status.value = data.hitCount ? 'success' : 'empty';
+  };
 
   const reset = () => {
     controller?.abort();
@@ -41,11 +68,17 @@ export const useSearchStore = defineStore('search', () => {
 
   const load = async (cursorStack) => {
     controller?.abort();
+    controller = null;
+    lastRequest = cursorStack;
+    error.value = null;
+
+    const key = cacheKey(cursorStack.at(-1));
+    const cached = readCache(key);
+    if (cached) return show(cursorStack, cached);
+
     controller = new AbortController();
     const { signal } = controller;
-    lastRequest = cursorStack;
     status.value = 'loading';
-    error.value = null;
 
     const result = await searchArticles({
       query: query.value,
@@ -61,11 +94,8 @@ export const useSearchStore = defineStore('search', () => {
       return;
     }
 
-    cursors.value = cursorStack;
-    articles.value = result.data.articles;
-    hitCount.value = result.data.hitCount;
-    nextCursorMark.value = result.data.nextCursorMark;
-    status.value = result.data.hitCount ? 'success' : 'empty';
+    writeCache(key, result.data);
+    show(cursorStack, result.data);
   };
 
   // Actions
