@@ -18,6 +18,22 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
+## Try it
+
+Type a term and press **Add**; choose AND, OR or NOT before each later term. Results update as
+the query changes. Counts were checked against the live API in November 2026 and will grow.
+
+| Terms to add                                       | Query built                                         | Shows                            |
+| -------------------------------------------------- | --------------------------------------------------- | -------------------------------- |
+| `cancer`, AND `immunotherapy`, NOT `melanoma`      | `cancer AND immunotherapy NOT melanoma`             | The brief's example (~280k)      |
+| `tumour`, OR `tumor`, NOT `benign`                 | `(tumour OR tumor) NOT benign`                      | Brackets added automatically     |
+| `breast cancer`, AND `screening`                   | `"breast cancer" AND screening`                     | Phrases are quoted               |
+| `covid-19`, AND `vaccine`                          | `"covid-19" AND vaccine`                            | Hyphens searched literally       |
+| `Escherichia coli`, AND `antimicrobial resistance` | `"Escherichia coli" AND "antimicrobial resistance"` | Titles with markup, cleaned      |
+| `tardigrade`, AND `radiation tolerance`            | `tardigrade AND "radiation tolerance"`              | Two pages: page to the end (~43) |
+| `zzqqxxnotaword`                                   | `zzqqxxnotaword`                                    | The empty state                  |
+| _(Add with an empty box)_, or `OR`                 | _(nothing searched)_                                | Validation messages              |
+
 ## Test
 
 ```sh
@@ -43,6 +59,7 @@ src/
   assets/main.css     Tailwind entry and design tokens
   components/layout/  app frame: skip link, header, footer
   components/query/   query builder: term form, term list, query preview
+  components/results/ results: states, result cards, pagination
   router/             routes
   services/           network: fetch wrapper and the Europe PMC search service
   stores/             app state: query terms, search results and paging
@@ -60,7 +77,7 @@ each with its tests:
 3. **HTTP layer and Europe PMC service**: typed errors, cancellable requests, response mapping
 4. **Stores**: query terms, and search status with cursor-based next/previous pagination
 5. **Query builder UI**: term form, editable term list, live query preview
-6. Results UI: list, loading, empty and error states, pagination controls
+6. **Results UI**: automatic search, list, loading, empty and error states, pagination
 7. URL sync, accessibility pass, and final notes
 
 ## Engineering notes
@@ -72,8 +89,9 @@ each with its tests:
   field searches such as `TITLE:cancer` are not supported (see limitations).
 - **Brackets make the order explicit.** When a query switches between AND/NOT and OR, everything
   so far is bracketed: `a OR b`, then `AND c`, becomes `(a OR b) AND c`. Tested against the live
-  API, unbracketed `malaria AND vaccine OR dengue` returned 293k results, matching neither
-  `(malaria AND vaccine) OR dengue` (149k) nor `malaria AND (vaccine OR dengue)` (70k).
+  API, unbracketed `a AND b OR c` returns exactly the same results as `a` alone: the engine
+  silently drops the other terms (`malaria AND vaccine OR dengue` and `malaria` both return
+  293,407). Bracketed, `(malaria AND vaccine) OR dengue` returns 149,341.
 - **The first term's operator is ignored**, since there is nothing before it to combine with.
 
 ### API connection
@@ -121,6 +139,22 @@ each with its tests:
 - **Checked in a real browser**, not only in jsdom: keyboard-only use, phone width, and an axe-core
   audit of the production build (0 violations).
 
+### Results UI
+
+- **Search runs as the query changes**, with no Search button, so refining is immediate. Safe
+  because each new request cancels the previous one.
+- **Every state has its own view**: a prompt before searching, placeholder cards while loading
+  (animated only if the user allows motion), results, an empty state with suggestions, and an
+  error with **Try again**.
+- **Screen readers hear outcomes, not every step**: "279,912 results. Page 1 of 11,197.", "No
+  results found." or the error. "Loading" isn't announced, as every query change searches.
+- **Paging moves focus to the Results heading**, so keyboard and screen reader users start at the
+  top of the new page. The list is an `<ol>` numbered from where the page starts (26, 27…).
+- **Article links open in a new tab**, announced as "(opens in a new tab)", so the search isn't
+  lost; a URL that holds the search (step 7) would allow same-tab links.
+- **Checked against the live API in a real browser**: paging to the last page, the empty state,
+  a simulated network failure with Try again, and axe-core on the production build (0 violations).
+
 ### Styling
 
 - Tailwind's default palette is switched off; only our design tokens exist, and every colour
@@ -136,6 +170,8 @@ each with its tests:
 - Removing the first term promotes the next one, dropping its operator (`cancer NOT melanoma`
   becomes `melanoma`). The query preview shows the change.
 - Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).
+- On phones the query builder comes first, so results are below it and need a scroll.
+- The search isn't in the URL yet, so it can't be bookmarked or shared, and is lost on refresh.
 
 _More to be added as the build progresses._
 

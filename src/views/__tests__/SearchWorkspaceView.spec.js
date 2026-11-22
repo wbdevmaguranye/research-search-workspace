@@ -1,7 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
+import { searchArticles } from '@/services/europePmc';
 import SearchWorkspaceView from '../SearchWorkspaceView.vue';
+
+// Mock only the request; keep the real PAGE_SIZE
+vi.mock('@/services/europePmc', async (importOriginal) => ({
+  ...(await importOriginal()),
+  searchArticles: vi.fn(),
+}));
+
+const article = (id) => ({ id, title: `Title ${id}`, authors: 'Doe J.', year: '2024', url: '#' });
 
 let wrapper;
 
@@ -12,23 +21,31 @@ const addTerm = async (value, operator) => {
   await wrapper.get('form').trigger('submit');
 };
 
+const queryPanel = () => wrapper.get('section[aria-labelledby="query-heading"]');
+const termItems = () => queryPanel().findAll('li');
 const preview = () => wrapper.get('output').text();
 const removeButton = (value) => wrapper.get(`button[aria-label="Remove ${value}"]`);
+const searchedQueries = () => searchArticles.mock.calls.map(([args]) => args.query);
+
+beforeEach(() => {
+  setActivePinia(createPinia());
+  searchArticles.mockReset();
+  searchArticles.mockResolvedValue({
+    ok: true,
+    data: { hitCount: 2, nextCursorMark: null, articles: [article('a'), article('b')] },
+  });
+  wrapper = mount(SearchWorkspaceView, { attachTo: document.body });
+});
+
+afterEach(() => wrapper.unmount());
 
 describe('SearchWorkspaceView: building a query', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    wrapper = mount(SearchWorkspaceView, { attachTo: document.body });
-  });
-
-  afterEach(() => wrapper.unmount());
-
   it('builds the example from the brief', async () => {
     await addTerm('cancer');
     await addTerm('immunotherapy', 'AND');
     await addTerm('melanoma', 'NOT');
 
-    expect(wrapper.findAll('li')).toHaveLength(3);
+    expect(termItems()).toHaveLength(3);
     expect(preview()).toBe('cancer AND immunotherapy NOT melanoma');
   });
 
@@ -62,7 +79,7 @@ describe('SearchWorkspaceView: building a query', () => {
     await addTerm('cancer');
     await removeButton('cancer').trigger('click');
 
-    expect(wrapper.find('ol').exists()).toBe(false);
+    expect(queryPanel().find('ol').exists()).toBe(false);
     expect(document.activeElement).toBe(wrapper.get('input[type="text"]').element);
   });
 
@@ -74,8 +91,43 @@ describe('SearchWorkspaceView: building a query', () => {
       .find((b) => b.text() === 'Clear all')
       .trigger('click');
 
-    expect(wrapper.find('ol').exists()).toBe(false);
+    expect(queryPanel().find('ol').exists()).toBe(false);
     expect(preview()).toBe('Your query will appear here as you add terms.');
     expect(document.activeElement).toBe(wrapper.get('input[type="text"]').element);
+  });
+});
+
+describe('SearchWorkspaceView: searching', () => {
+  it('does not search before any term is added', () => {
+    expect(searchArticles).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Add a term to see matching publications.');
+  });
+
+  it('searches with the built query as soon as a term is added, and shows the results', async () => {
+    await addTerm('cancer');
+    await flushPromises();
+
+    expect(searchedQueries()).toEqual(['cancer']);
+    expect(wrapper.text()).toContain('Title a');
+    expect(wrapper.text()).toContain('Title b');
+  });
+
+  it('searches again each time the query changes', async () => {
+    await addTerm('cancer');
+    await addTerm('melanoma', 'NOT');
+    await wrapper.get('select').setValue('OR');
+    await flushPromises();
+
+    expect(searchedQueries()).toEqual(['cancer', 'cancer NOT melanoma', 'cancer OR melanoma']);
+  });
+
+  it('goes back to the prompt, without searching, when every term is removed', async () => {
+    await addTerm('cancer');
+    await flushPromises();
+    await removeButton('cancer').trigger('click');
+    await flushPromises();
+
+    expect(searchArticles).toHaveBeenCalledTimes(1);
+    expect(wrapper.text()).toContain('Add a term to see matching publications.');
   });
 });

@@ -1,12 +1,21 @@
 <script setup>
-import { useTemplateRef } from 'vue';
+import { useTemplateRef, watch } from 'vue';
 import QueryTermForm from '@/components/query/QueryTermForm.vue';
 import QueryTermList from '@/components/query/QueryTermList.vue';
 import QueryPreview from '@/components/query/QueryPreview.vue';
+import SearchResults from '@/components/results/SearchResults.vue';
 import { useQueryStore } from '@/stores/queryStore';
+import { useSearchStore } from '@/stores/searchStore';
 
 const queryStore = useQueryStore();
+const searchStore = useSearchStore();
 const termForm = useTemplateRef('termForm');
+
+// Search whenever the query changes; the store cancels any request still in flight
+watch(
+  () => queryStore.query,
+  (query) => searchStore.search(query),
+);
 
 const addTerm = ({ value, operator }) => queryStore.addTerm(value, operator);
 
@@ -49,10 +58,20 @@ const clearTerms = () => {
         </div>
       </section>
 
-      <section aria-labelledby="results-heading">
-        <h2 id="results-heading" class="text-lg font-semibold">Results</h2>
-        <!-- Results and pagination: step 6 -->
-      </section>
+      <SearchResults
+        :status="searchStore.status"
+        :query="searchStore.query"
+        :articles="searchStore.articles"
+        :hit-count="searchStore.hitCount"
+        :page="searchStore.page"
+        :page-count="searchStore.pageCount"
+        :has-previous="searchStore.hasPrevious"
+        :has-next="searchStore.hasNext"
+        :error="searchStore.error"
+        @previous="searchStore.previousPage"
+        @next="searchStore.nextPage"
+        @retry="searchStore.retry"
+      />
     </div>
   </div>
 </template>

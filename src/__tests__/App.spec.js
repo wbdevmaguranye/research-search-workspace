@@ -40,13 +40,14 @@ describe('App layout', () => {
     expect(main.attributes('tabindex')).toBe('-1');
   });
 
-  it('has a single h1 and labelled query and results regions', () => {
+  it('has a single h1, and each h2 labels its own region', () => {
     expect(wrapper.findAll('h1')).toHaveLength(1);
 
-    for (const headingId of ['query-heading', 'results-heading']) {
-      const section = wrapper.find(`section[aria-labelledby="${headingId}"]`);
-      expect(section.exists()).toBe(true);
-      expect(section.find(`#${headingId}`).element.tagName).toBe('H2');
+    const headings = wrapper.findAll('h2');
+    expect(headings.map((h) => h.text())).toEqual(['Build your query', 'Results']);
+    for (const heading of headings) {
+      const section = heading.element.closest('section');
+      expect(section.getAttribute('aria-labelledby')).toBe(heading.attributes('id'));
     }
   });
 });
