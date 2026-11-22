@@ -9,8 +9,10 @@
   --color-ink: #182029;
   --color-muted: #4d5660;
   --color-line: #d6dbe1;
+  --color-line-strong: #7d8791;
   --color-accent: #00696f;
   --color-accent-strong: #004e53;
+  --color-danger: #b42318;
 }
 
 @layer base {

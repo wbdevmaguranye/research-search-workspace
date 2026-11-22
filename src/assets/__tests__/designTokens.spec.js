@@ -8,7 +8,7 @@ const css = readFileSync(resolve(import.meta.dirname, '../main.css'), 'utf8');
 
 // WCAG 2.2 AA minimums.
 const TEXT = 4.5; // 1.4.3 Contrast (Minimum): normal-size text
-const NON_TEXT = 3; // 1.4.11 Non-text Contrast: focus rings
+const NON_TEXT = 3; // 1.4.11 Non-text Contrast: focus rings, form-field borders
 
 describe('contrastRatio', () => {
   it('gives the known extremes', () => {
@@ -36,9 +36,13 @@ describe('design tokens in main.css', () => {
     ['muted', 'canvas', TEXT, 'secondary text on the page'],
     ['accent', 'surface', TEXT, 'links on cards'],
     ['accent-strong', 'surface', TEXT, 'hovered links'],
-    ['white', 'accent', TEXT, 'skip link and header badge'],
+    ['white', 'accent', TEXT, 'skip link, header badge, buttons, selected operator'],
+    ['white', 'accent-strong', TEXT, 'hovered buttons'],
+    ['danger', 'surface', TEXT, 'form error messages'],
     ['accent', 'surface', NON_TEXT, 'focus ring on cards'],
     ['accent', 'canvas', NON_TEXT, 'focus ring on the page'],
+    ['line-strong', 'surface', NON_TEXT, 'input and operator option borders'],
+    ['line-strong', 'canvas', NON_TEXT, 'operator select borders in the term list'],
   ];
 
   it('finds every token the pairings refer to', () => {

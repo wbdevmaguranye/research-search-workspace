@@ -42,6 +42,7 @@ npm run format:check
 src/
   assets/main.css     Tailwind entry and design tokens
   components/layout/  app frame: skip link, header, footer
+  components/query/   query builder: term form, term list, query preview
   router/             routes
   services/           network: fetch wrapper and the Europe PMC search service
   stores/             app state: query terms, search results and paging
@@ -56,9 +57,9 @@ each with its tests:
 
 1. **Base setup and layout**: toolchain, design tokens, accessible app frame
 2. **Query building logic**: pure functions that turn terms into a Europe PMC query
-3. HTTP layer and Europe PMC service: typed errors, cancellable requests, response mapping
-4. Stores: query terms, and search status with cursor-based next/previous pagination
-5. Query builder UI
+3. **HTTP layer and Europe PMC service**: typed errors, cancellable requests, response mapping
+4. **Stores**: query terms, and search status with cursor-based next/previous pagination
+5. **Query builder UI**: term form, editable term list, live query preview
 6. Results UI: list, loading, empty and error states, pagination controls
 7. URL sync, accessibility pass, and final notes
 
@@ -106,6 +107,19 @@ each with its tests:
   ignored even if it arrives late.
 - **Errors keep your place.** If a page fails to load, the page number doesn't change, and Retry
   repeats exactly the request that failed.
+
+### Query builder UI
+
+- **Presentational components, one connecting view.** The form, term list and preview take props
+  and emit events; `SearchWorkspaceView` connects them to the store.
+- **Operators are explained, not just named.** AND / OR / NOT is a radio group showing "must
+  include", "either one" and "must not include", for researchers new to search syntax.
+- **Accessibility built in:** every control is labelled; errors set `aria-invalid` and are
+  announced; the query preview is a polite live region; remove buttons are named after their term
+  ("Remove melanoma"); and focus moves to the next term after a removal (or back to the input once
+  the list is empty) instead of being lost.
+- **Checked in a real browser**, not only in jsdom: keyboard-only use, phone width, and an axe-core
+  audit of the production build (0 violations).
 
 ### Styling
 
