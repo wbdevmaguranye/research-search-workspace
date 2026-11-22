@@ -20,8 +20,9 @@ npm run dev          # http://localhost:5173
 
 ## Try it
 
-Type a term and press **Add**; choose AND, OR or NOT before each later term. Results update as
-the query changes. Counts were checked against the live API in November 2026 and will grow.
+Click one of the **example searches** under the search box, or type a term and press **Add**;
+choose AND, OR or NOT before each later term. Results update as the query changes. Counts were
+checked against the live API in November 2026 and will grow.
 
 | Terms to add                                       | Query built                                         | Shows                            |
 | -------------------------------------------------- | --------------------------------------------------- | -------------------------------- |
@@ -99,8 +100,11 @@ each with its tests:
 - **Requests never throw.** `services/http.js` resolves every call to `{ ok: true, data }` or
   `{ ok: false, error: { kind, status, message } }`, where `kind` is `network`, `http`, `timeout`,
   `parse` or `aborted`. This follows the data-layer pattern of a previous project, adding typed
-  errors, cancellation and a 15-second timeout. It is a plain module, not a Pinia store, as it
+  errors, cancellation and a 30-second timeout. It is a plain module, not a Pinia store, as it
   holds no state.
+- **Why 30 seconds:** queries Europe PMC hasn't cached took 11-13s in testing, and a first
+  15-second limit failed a real search ("sepsis biomarker"). Cached queries return in under a
+  second.
 - **Requests can be cancelled** with an `AbortSignal`, so a newer search can cancel an older one.
 - **Plain `fetch`, no HTTP library.** Europe PMC allows cross-origin requests
   (`Access-Control-Allow-Origin: *`), so no backend or proxy is needed.
@@ -128,10 +132,28 @@ each with its tests:
 
 ### Query builder UI
 
-- **Presentational components, one connecting view.** The form, term list and preview take props
-  and emit events; `SearchWorkspaceView` connects them to the store.
-- **Operators are explained, not just named.** AND / OR / NOT is a radio group showing "must
-  include", "either one" and "must not include", for researchers new to search syntax.
+- **A workspace layout, like GitHub's: query panel on the left, results filling the rest.** The
+  panel runs full height, stays put while results scroll, scrolls on its own if the terms outgrow
+  the screen, and pins the query preview at its top. Below 1024px it stacks above the results.
+- **How the layout was reached** (each step measured in a real browser):
+  1. A sidebar _card_: with 12 terms it grew to 1,086px and pushed the query preview off screen.
+  2. A search bar above the results: compact (12 terms in 426px), but left about 380px empty on
+     each side of a 1920px screen.
+  3. The workspace layout: uses the full width (result cards 1,104px → 1,472px at 1920px) and
+     keeps the query visible with 20 terms, at any scroll position.
+- **Patterns borrowed from established tools.** PubMed's Advanced Search Builder puts operator,
+  term and Add in one row with a query box; EMBL-EBI's Visual Framework search pattern shows
+  example searches under the box; design-system "combo search" patterns show terms as chips.
+- **Components adapt to their space, not the screen.** Tailwind v4 container queries (`@container`,
+  `@lg:`) put the form on one row when it has room (full width on a tablet) and stack it in the
+  narrow panel, with no special cases.
+- **Operators are explained, not just named.** AND / OR / NOT is a compact segmented control (a
+  real radio group) with one line describing the current choice, e.g. "Results must not include
+  this term."
+- **Example searches** load a ready-made query in one click and search it once; they show only
+  until the first term is added.
+- **Presentational components, one connecting view.** The form, term list, examples and preview
+  take props and emit events; `SearchWorkspaceView` connects them to the store.
 - **Accessibility built in:** every control is labelled; errors set `aria-invalid` and are
   announced; the query preview is a polite live region; remove buttons are named after their term
   ("Remove melanoma"); and focus moves to the next term after a removal (or back to the input once
@@ -143,6 +165,15 @@ each with its tests:
 
 - **Search runs as the query changes**, with no Search button, so refining is immediate. Safe
   because each new request cancels the previous one.
+- **An app shell on large screens: only the results scroll.** Header, footer, query panel, the
+  Results heading and the paging bar stay fixed; the results list scrolls on its own with a thin
+  brand-orange scrollbar (`scrollbar-brand` in `main.css`). New results reset it to the top. On
+  phones the page scrolls normally and the paging bar sticks to the bottom of the screen.
+- **25 results per page**, as the brief asks. While the next page loads, the paging bar stays in
+  place with its buttons disabled, so the layout doesn't jump and double clicks can't skip pages.
+- **A gotcha found in the browser:** screen-reader-only text (`sr-only`, absolutely positioned)
+  inside a scroll area with no positioned ancestor stretched the page to 3,000px, bringing back
+  a page scrollbar. Making each scroll area `relative` keeps that text inside it.
 - **Every state has its own view**: a prompt before searching, placeholder cards while loading
   (animated only if the user allows motion), results, an empty state with suggestions, and an
   error with **Try again**.
@@ -160,6 +191,8 @@ each with its tests:
 - Tailwind's default palette is switched off; only our design tokens exist, and every colour
   pairing used in the UI is tested against WCAG 2.2 AA contrast. Trade-off: a stray palette
   class (`text-gray-600`) produces no style rather than an error.
+- The brand orange `#fcaf17` is 1.7:1 against the page, too faint for a scrollbar, so the
+  `brand` token is the closest darker shade that passes 3:1 (`#c77d00`).
 
 ### Known limitations
 
@@ -170,7 +203,6 @@ each with its tests:
 - Removing the first term promotes the next one, dropping its operator (`cancer NOT melanoma`
   becomes `melanoma`). The query preview shows the change.
 - Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).
-- On phones the query builder comes first, so results are below it and need a scroll.
 - The search isn't in the URL yet, so it can't be bookmarked or shared, and is lost on refresh.
 
 _More to be added as the build progresses._

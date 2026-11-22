@@ -1,6 +1,6 @@
 // fetch wrapper that never throws: resolves to { ok: true, data } or { ok: false, error }.
 
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 30000; // Europe PMC can take 10-15s on queries it hasn't cached
 
 const MESSAGES = {
   network: 'Could not reach the server. Check your connection and try again.',
