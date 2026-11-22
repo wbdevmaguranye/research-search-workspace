@@ -1,0 +1,47 @@
+{
+  "version": "6.9",
+  "hitCount": 3172,
+  "nextCursorMark": "AoIIP/YqoCg1MjExNjczMg==",
+  "request": {
+    "queryString": "TITLE:\"Escherichia coli\" AND PUB_YEAR:2024",
+    "resultType": "lite",
+    "cursorMark": "*",
+    "pageSize": 3,
+    "sort": "",
+    "synonym": false
+  },
+  "resultList": {
+    "result": [
+      {
+        "id": "39559263",
+        "source": "MED",
+        "pmid": "39559263",
+        "doi": "10.1099/acmi.0.000885.v3",
+        "title": "Enterotoxigenic Escherichia coli in Blantyre, Malawi.",
+        "authorString": "Ashton PM, Katuah ZJ, Botomani A, Kutambe BM, Cunliffe NA, von Mentzer A, Msefula C, Jere KC.",
+        "journalTitle": "Access Microbiol",
+        "pubYear": "2024"
+      },
+      {
+        "id": "39373482",
+        "source": "MED",
+        "pmid": "39373482",
+        "doi": "10.1093/nar/gkae857",
+        "title": "Revisiting the y-ome of Escherichia coli.",
+        "authorString": "Moore LR, Caspi R, Boyd D, Berkmen M, Mackie A, Paley S, Karp PD.",
+        "journalTitle": "Nucleic Acids Res",
+        "pubYear": "2024"
+      },
+      {
+        "id": "39723150",
+        "source": "MED",
+        "pmid": "39723150",
+        "doi": "10.3389/fmicb.2024.1474919",
+        "title": "Kaempferol restores the susceptibility of ESBLs <i>Escherichia coli</i> to Ceftiofur.",
+        "authorString": "Li PC, Tong YC, Xiao XL, Fan YP, Ma WR, Liu YQ, Zhuang S, Qing SZ, Zhang WM.",
+        "journalTitle": "Front Microbiol",
+        "pubYear": "2024"
+      }
+    ]
+  }
+}
