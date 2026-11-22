@@ -46,7 +46,6 @@ defineExpose({ focus });
   <form novalidate class="@container" @submit.prevent="submit">
     <label :for="inputId" class="text-sm font-medium">Keyword or phrase</label>
 
-    
     <div class="mt-2 flex flex-col gap-2 @lg:flex-row">
       <fieldset v-if="hasTerms" :aria-describedby="hintId" class="shrink-0">
         <legend class="sr-only">Combine with</legend>

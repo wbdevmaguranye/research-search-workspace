@@ -59,13 +59,14 @@ npm run format:check
 src/
   assets/main.css     Tailwind entry and design tokens
   components/layout/  app frame: skip link, header, footer
-  components/query/   query builder: term form, term list, query preview
+  components/query/   query builder: term form, term list, query preview, examples
   components/results/ results: states, result cards, pagination
   router/             routes
   services/           network: fetch wrapper and the Europe PMC search service
   stores/             app state: query terms, search results and paging
-  utils/              pure logic: query building
+  utils/              pure logic: query building, terms to and from the URL
   views/              the search workspace page
+CLAUDE.md             working rules for the AI assistant (and for people)
 ```
 
 ## Build plan
@@ -79,7 +80,7 @@ each with its tests:
 4. **Stores**: query terms, and search status with cursor-based next/previous pagination
 5. **Query builder UI**: term form, editable term list, live query preview
 6. **Results UI**: automatic search, list, loading, empty and error states, pagination
-7. URL sync, accessibility pass, and final notes
+7. **URL sync, accessibility pass, and final notes**: shareable searches, Back/Forward, page title
 
 ## Engineering notes
 
@@ -181,10 +182,49 @@ each with its tests:
   results found." or the error. "Loading" isn't announced, as every query change searches.
 - **Paging moves focus to the Results heading**, so keyboard and screen reader users start at the
   top of the new page. The list is an `<ol>` numbered from where the page starts (26, 27…).
-- **Article links open in a new tab**, announced as "(opens in a new tab)", so the search isn't
-  lost; a URL that holds the search (step 7) would allow same-tab links.
+- **Article links open in a new tab**, announced as "(opens in a new tab)", so researchers can
+  open several articles and keep their place in the results.
 - **Checked against the live API in a real browser**: paging to the last page, the empty state,
   a simulated network failure with Try again, and axe-core on the production build (0 violations).
+
+### URL and history
+
+- **The search lives in the URL**: `?t=cancer&t=AND:immunotherapy&t=NOT:melanoma`, one `t` per
+  term with its operator as a prefix. A search can be bookmarked, shared and refreshed.
+- **Each change is a history entry**, so the browser's Back button undoes the last change and
+  Forward redoes it.
+- **Terms rather than the query string**, so loading a URL needs no query parser. Values from an
+  edited URL go through the same validation as typed terms; anything invalid is dropped.
+- **The page title follows the query** ("cancer NOT melanoma – Research Search Workspace"), so
+  tabs, history entries and screen readers name each search.
+
+### Accessibility
+
+Aimed at WCAG 2.2 AA:
+
+- Landmarks, one `h1`, ordered headings and a skip link; every control has a label.
+- Fully keyboard operable, with one visible focus style. Focus is managed when content changes:
+  after removing a term, loading an example and changing page.
+- Status changes are announced through live regions: the query preview, results counts and errors.
+- Colour contrast is tested automatically (`designTokens.spec.js`); motion respects
+  `prefers-reduced-motion`; targets are at least 32px; reflows to 320px wide without sideways
+  scrolling.
+- Checked with axe-core on the production build at 1920, 900 and 390px, in the empty, results and
+  error states: 0 violations.
+
+### Testing and verification
+
+- **Unit tests** for the pure logic (query building, URL conversion) and the services (every error
+  kind, cancellation, timeout, response mapping), using a fixture trimmed from a real API response.
+- **Store tests** for paging, retry and overlapping requests (a slow response arriving late).
+- **Component and page tests** for behaviour users rely on: building the brief's example,
+  validation, focus after removals, automatic search, and URL loading and Back.
+- **Tests that guard the tests:** key logic was broken on purpose (ignoring cancelled responses,
+  trusting the last-page cursor, focus handling) to confirm the right tests fail.
+- **Live checks in a real browser** (Chromium via Playwright, kept out of the repo): real API
+  results, the last page, a simulated network failure, keyboard use, layouts and axe audits.
+  These caught bugs the unit tests could not: double-encoded titles, an emoji icon on Windows,
+  a too-short timeout and a page-height bug.
 
 ### Styling
 
@@ -203,9 +243,10 @@ each with its tests:
 - Removing the first term promotes the next one, dropping its operator (`cancer NOT melanoma`
   becomes `melanoma`). The query preview shows the change.
 - Needs a browser from 2024 or later (`AbortSignal.any`: Chrome 116, Firefox 124, Safari 17.4).
-- The search isn't in the URL yet, so it can't be bookmarked or shared, and is lost on refresh.
-
-_More to be added as the build progresses._
+- The URL holds the terms, not the page: cursor paging can't jump to page 5 without fetching
+  pages 1-4, so a shared link opens at page 1.
+- No end-to-end tests in the repo; browser checks were run with throwaway Playwright scripts. Adding
+  them as a Playwright suite would be the next step.
 
 ## AI-assisted development reflection
 
