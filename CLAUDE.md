@@ -43,6 +43,12 @@ views/      composes components with stores. Thin.
 - Status changes (results loaded, errors) are announced through an `aria-live` region.
 - Every interactive element is keyboard reachable with a visible focus ring. Respect reduced motion.
 
+## Comments
+
+- One line, short, plain English. Say why, not what the code already says.
+- No multi-line comment blocks or JSDoc paragraphs. Longer reasoning goes in the README's
+  Engineering notes.
+
 ## Before every commit
 
 ```sh

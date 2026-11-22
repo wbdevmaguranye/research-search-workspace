@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Contrast of these pairings is checked by src/assets/__tests__/designTokens.spec.js */
+/* Contrast is tested in src/assets/__tests__/designTokens.spec.js */
 @theme {
   --color-*: initial;
   --color-white: #ffffff;

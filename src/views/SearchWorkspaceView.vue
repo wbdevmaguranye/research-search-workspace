@@ -1,9 +1,3 @@
-<script setup>
-// The workspace has two areas, each built in its own step:
-//   1. Query builder: terms combined with AND / OR / NOT, and a live preview of the query.
-//   2. Results: 25 per page, with previous/next navigation and loading, empty and error states.
-</script>
-
 <template>
   <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
     <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Search the literature</h1>
@@ -18,12 +12,12 @@
         class="rounded-lg border border-line bg-surface p-5 shadow-sm lg:sticky lg:top-6"
       >
         <h2 id="query-heading" class="text-lg font-semibold">Build your query</h2>
-        <!-- Query builder goes here (step 2). -->
+        <!-- Query builder: step 5 -->
       </section>
 
       <section aria-labelledby="results-heading">
         <h2 id="results-heading" class="text-lg font-semibold">Results</h2>
-        <!-- Results list and pagination go here (step 5). -->
+        <!-- Results and pagination: step 6 -->
       </section>
     </div>
   </div>

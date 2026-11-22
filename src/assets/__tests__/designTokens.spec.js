@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { parseColourTokens, contrastRatio } from './helpers/contrast';
 
-// Read from disk: Vitest stubs CSS imports (even `?raw`) to an empty string by default.
+// Read from disk: Vitest turns CSS imports into empty strings
 const css = readFileSync(resolve(import.meta.dirname, '../main.css'), 'utf8');
 
 // WCAG 2.2 AA minimums.
@@ -28,8 +28,7 @@ describe('contrastRatio', () => {
 describe('design tokens in main.css', () => {
   const tokens = parseColourTokens(css);
 
-  // [foreground, background, minimum ratio, where the pairing is used]
-  // Add a pairing whenever a component puts a token on a new background.
+  // [foreground, background, minimum, where used]: add one for each new colour pairing in the UI
   const pairings = [
     ['ink', 'surface', TEXT, 'body text on cards'],
     ['ink', 'canvas', TEXT, 'body text on the page'],

@@ -28,9 +28,9 @@ export default defineConfig([
   {
     name: 'app/vue-conventions',
     rules: {
-      // <script setup> first, then <template>: read the logic, then the markup that uses it.
+      // <script setup> before <template>
       'vue/block-order': ['error', { order: ['script', 'template'] }],
-      // Style with Tailwind classes; shared CSS (tokens, base styles) lives only in src/assets/main.css.
+      // No <style> blocks: Tailwind classes only
       'vue/no-restricted-block': [
         'error',
         {

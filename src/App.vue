@@ -11,7 +11,7 @@ const MAIN_CONTENT_ID = 'main-content';
     <AppSkipLink :target-id="MAIN_CONTENT_ID" />
     <AppHeader />
 
-    <!-- tabindex="-1" lets the skip link (and later, route changes) move focus here. -->
+    <!-- tabindex="-1" so the skip link can move focus here -->
     <main :id="MAIN_CONTENT_ID" tabindex="-1" class="flex-1 focus:outline-none">
       <RouterView />
     </main>
